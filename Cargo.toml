@@ -1,0 +1,34 @@
+[package]
+name = "bzd-feeds"
+edition = "2024"
+
+[workspace]
+resolver = "3"
+members = ["lib/migration"]
+
+[dependencies]
+bzd-lib = { git = "https://github.com/bez-dna/bzd-lib.git" }
+
+axum = "0.8.7"
+
+tokio = { version = "1.48.0", features = ["full"] }
+
+tonic = "0.14.2"
+tonic-health = "0.14.2"
+tonic-reflection = "0.14.2"
+prost-types = "0.14.1"
+
+serde = "1.0.228"
+serde_json = "1.0.145"
+
+sea-orm = { version = "1.1.19", features = [
+  "sqlx-postgres",
+  "runtime-tokio-rustls",
+] }
+
+config = { version = "0.15.19", default-features = false, features = ["toml"] }
+tracing = "0.1.43"
+uuid = { version = "1.19.0", features = ["v7"] }
+validator = { version = "0.20.0", features = ["derive"] }
+thiserror = "2.0.17"
+chrono = "0.4.42"
