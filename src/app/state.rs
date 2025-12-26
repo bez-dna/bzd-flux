@@ -1,28 +1,24 @@
-use std::sync::Arc;
-
-use async_nats::jetstream::{self, Context};
 use bzd_lib::error::Error;
-use sea_orm::{ConnectOptions, Database, DbConn};
 
-use crate::app::settings::AppSettings;
+use crate::app::{db::DbState, feeds::state::FeedsState, mess::MessState, settings::AppSettings};
 
 #[derive(Clone)]
 pub struct AppState {
-    pub settings: AppSettings,
-    pub db: Arc<DbConn>,
-    pub js: Arc<Context>,
+    pub feeds: FeedsState,
 }
 
 impl AppState {
     pub async fn new(settings: AppSettings) -> Result<Self, Error> {
-        let mut opt = ConnectOptions::new(&settings.db.endpoint);
-        opt.sqlx_logging(false);
+        let db = DbState::new(&settings.db).await?;
 
-        let db = Arc::new(Database::connect(opt).await?);
+        let mess = MessState::new(&settings.nats).await?;
 
-        let nats = async_nats::connect(&settings.nats.endpoint).await?;
-        let js = Arc::new(jetstream::new(nats));
+        let feeds = FeedsState {
+            settings: settings.feeds.clone(),
+            db: db.clone(),
+            mess: mess.clone(),
+        };
 
-        Ok(Self { settings, db, js })
+        Ok(Self { feeds })
     }
 }

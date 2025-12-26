@@ -10,4 +10,10 @@ pub enum AppError {
     Uuid(#[from] uuid::Error),
     #[error("DECODE")]
     Decode(#[from] prost::DecodeError),
+    #[error("STRUM")]
+    Strum(#[from] strum::ParseError),
+
+    // Ok
+    #[error("UNREACHABLE")]
+    Unreachable,
 }

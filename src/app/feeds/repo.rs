@@ -1,8 +1,7 @@
-use bzd_lib::error::Error;
 use chrono::{Duration, NaiveDateTime, Utc};
 use sea_orm::{
     ActiveModelTrait as _, ColumnTrait, Condition, ConnectionTrait, EntityTrait,
-    IntoActiveModel as _, QueryFilter as _, QueryOrder, QuerySelect,
+    IntoActiveModel as _, ModelTrait as _, QueryFilter as _, QueryOrder, QuerySelect,
     prelude::Expr,
     sea_query::{LockBehavior, LockType, OnConflict},
 };
@@ -13,18 +12,21 @@ use crate::app::error::AppError;
 pub mod task;
 pub mod topic_user;
 
+pub type TaskModel = task::Model;
+pub type TopicUserModel = topic_user::Model;
+
 pub async fn create_task<T: ConnectionTrait>(
     db: &T,
-    model: task::Model,
-) -> Result<task::Model, Error> {
+    model: TaskModel,
+) -> Result<TaskModel, AppError> {
     let task = model.into_active_model().insert(db).await?;
 
     Ok(task)
 }
 
-pub async fn create_topic_user<T: ConnectionTrait>(
+pub async fn upsert_topic_user<T: ConnectionTrait>(
     db: &T,
-    model: topic_user::Model,
+    model: TopicUserModel,
 ) -> Result<(), AppError> {
     topic_user::Entity::insert(model.into_active_model())
         .on_conflict(
@@ -39,11 +41,20 @@ pub async fn create_topic_user<T: ConnectionTrait>(
     Ok(())
 }
 
+pub async fn delete_topic_user<T: ConnectionTrait>(
+    db: &T,
+    model: TopicUserModel,
+) -> Result<(), AppError> {
+    model.delete(db).await?;
+
+    Ok(())
+}
+
 pub async fn get_earliest_tasks<T: ConnectionTrait>(
     db: &T,
     limit: u64,
-) -> Result<Vec<task::Model>, Error> {
-    let locked_at = Utc::now() - Duration::try_seconds(5).ok_or(Error::msg("UNREACH"))?;
+) -> Result<Vec<TaskModel>, AppError> {
+    let locked_at = Utc::now() - Duration::try_seconds(5).ok_or(AppError::Unreachable)?;
 
     let tasks = task::Entity::find()
         .filter(
@@ -64,7 +75,7 @@ pub async fn lock_tasks<T: ConnectionTrait>(
     db: &T,
     task_ids: Vec<Uuid>,
     locked_at: NaiveDateTime,
-) -> Result<(), Error> {
+) -> Result<(), AppError> {
     task::Entity::update_many()
         .col_expr(task::Column::LockedAt, Expr::value(locked_at))
         .filter(task::Column::TaskId.is_in(task_ids))

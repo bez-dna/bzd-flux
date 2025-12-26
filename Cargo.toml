@@ -8,7 +8,7 @@ members = ["lib/migration"]
 
 [dependencies]
 bzd-lib = { git = "https://github.com/bez-dna/bzd-lib.git" }
-bzd-messages-api = { git = "https://github.com/bez-dna/bzd-messages.git", branch = "dev" }
+bzd-messages-api = { git = "https://github.com/bez-dna/bzd-messages.git", branch = "dev-2" }
 
 axum = "0.8.7"
 
@@ -39,3 +39,5 @@ validator = { version = "0.20.0", features = ["derive"] }
 thiserror = "2.0.17"
 chrono = "0.4.42"
 futures-lite = "2.6.1"
+strum = "0.27.2"
+strum_macros = "0.27.2"

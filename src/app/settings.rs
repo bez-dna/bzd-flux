@@ -12,7 +12,7 @@ pub struct AppSettings {
     pub http: HttpSettings,
     pub db: DBSettings,
     pub nats: NATSSettings,
-    pub feeds: feeds::settings::Settings,
+    pub feeds: feeds::settings::FeedsSettings,
 }
 
 impl Settings<AppSettings> for AppSettings {}

@@ -1,11 +1,15 @@
 use bzd_lib::error::Error;
+use bzd_messages_api::events::topic_user::Type;
 use sea_orm::DbConn;
 
-use crate::app::{error::AppError, feeds::repo};
+use crate::app::{
+    error::AppError,
+    feeds::repo::{self, TaskModel},
+};
 
-pub async fn create_message(db: &DbConn, req: create_message::Request) -> Result<(), Error> {
-    let task = repo::task::Model::new(req.into());
-    let task = repo::create_task(db, task).await?;
+pub async fn create_message(db: &DbConn, req: create_message::Request) -> Result<(), AppError> {
+    let task = TaskModel::new(req.into());
+    repo::create_task(db, task).await?;
 
     Ok(())
 }
@@ -67,23 +71,30 @@ pub mod create_entries_from_message {
     }
 }
 
-pub async fn create_topic_user(
+pub async fn handle_topic_user(
     db: &DbConn,
-    req: create_topic_user::Request,
+    req: handle_topic_user::Request,
 ) -> Result<(), AppError> {
-    let topic_user: repo::topic_user::Model = req.into();
-    repo::create_topic_user(db, topic_user).await?;
+    let topic_user: repo::topic_user::Model = req.clone().into();
+
+    match req.tp {
+        Type::Created | Type::Updated => repo::upsert_topic_user(db, topic_user).await?,
+        Type::Deleted => repo::delete_topic_user(db, topic_user).await?,
+    }
 
     Ok(())
 }
 
-pub mod create_topic_user {
+pub mod handle_topic_user {
+    use bzd_messages_api::events::topic_user::Type;
     use chrono::NaiveDateTime;
     use uuid::Uuid;
 
     use crate::app::feeds::repo;
 
+    #[derive(Clone)]
     pub struct Request {
+        pub tp: Type,
         pub topic_user_id: Uuid,
         pub topic_id: Uuid,
         pub user_id: Uuid,

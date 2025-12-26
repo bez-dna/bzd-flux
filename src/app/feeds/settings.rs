@@ -2,7 +2,7 @@ use bzd_lib::settings::NATSConsumerSettings;
 use serde::Deserialize;
 
 #[derive(Deserialize, Clone)]
-pub struct Settings {
+pub struct FeedsSettings {
     pub messaging: MessagingSettings,
     pub processing: ProcessingSettings,
 }

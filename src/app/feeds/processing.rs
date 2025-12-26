@@ -8,10 +8,11 @@ use tokio_stream::wrappers::IntervalStream;
 use tracing::error;
 
 use crate::app::feeds::settings::ProcessingSettings;
+use crate::app::feeds::state::FeedsState;
 use crate::app::feeds::{repo, service};
 use crate::app::state::AppState;
 
-pub async fn tasks(state: &AppState) -> Result<(), Error> {
+pub async fn tasks(state: FeedsState) -> Result<(), Error> {
     let AppState { settings, db, js } = state;
 
     let mut interval = tokio::time::interval(Duration::from_secs(3));
