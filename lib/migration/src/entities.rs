@@ -11,8 +11,9 @@ pub enum Feeds {
 pub enum Entries {
     Table,
     EntryId,
-    FeedId,
+    UserId,
     MessageId,
+    TopicUserIds,
 }
 
 #[derive(DeriveIden)]

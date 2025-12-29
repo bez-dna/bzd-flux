@@ -4,7 +4,7 @@ use tokio::try_join;
 use crate::app::state::AppState;
 
 mod messaging;
-// mod processing;
+mod processing;
 mod repo;
 mod service;
 pub mod settings;
@@ -20,7 +20,7 @@ pub async fn messaging(state: &AppState) -> Result<(), Error> {
 }
 
 pub async fn processing(state: &AppState) -> Result<(), Error> {
-    // try_join!(processing::tasks(state.feeds.clone()))?;
+    try_join!(processing::tasks(state.feeds.clone()))?;
 
     Ok(())
 }

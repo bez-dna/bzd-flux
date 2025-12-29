@@ -1,10 +1,10 @@
-use bzd_lib::error::Error;
 use bzd_messages_api::events::topic_user::Type;
 use sea_orm::DbConn;
+use uuid::Uuid;
 
 use crate::app::{
     error::AppError,
-    feeds::repo::{self, TaskModel},
+    feeds::repo::{self, EntryModel, TaskModel},
 };
 
 pub async fn create_message(db: &DbConn, req: create_message::Request) -> Result<(), AppError> {
@@ -47,8 +47,21 @@ pub mod create_message {
 pub async fn create_entries_from_message(
     db: &DbConn,
     req: create_entries_from_message::Request,
-) -> Result<(), Error> {
-    Ok(())
+) -> Result<Option<Uuid>, AppError> {
+    let topics_users =
+        repo::get_topics_users_by_topic_user_id(db, req.topic_ids, req.last_topic_user_id).await?;
+
+    // TODO: нужно сделать параллельно
+    for topic_user in topics_users.clone() {
+        let entry = EntryModel::new(
+            topic_user.user_id,
+            req.message_id,
+            vec![topic_user.topic_user_id],
+        );
+        repo::create_entry(db, entry).await?;
+    }
+
+    Ok(topics_users.last().map(|it| it.topic_user_id))
 }
 
 pub mod create_entries_from_message {
@@ -59,6 +72,7 @@ pub mod create_entries_from_message {
     pub struct Request {
         pub message_id: Uuid,
         pub topic_ids: Vec<Uuid>,
+        pub last_topic_user_id: Option<Uuid>,
     }
 
     impl From<CreateMessage> for Request {
@@ -66,6 +80,7 @@ pub mod create_entries_from_message {
             Self {
                 message_id: payload.message_id,
                 topic_ids: payload.topic_ids,
+                last_topic_user_id: payload.last_topic_user_id,
             }
         }
     }

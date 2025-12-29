@@ -12,8 +12,9 @@ impl MigrationTrait for Migration {
             .create_table(
                 table_auto(Entries::Table)
                     .col(uuid(Entries::EntryId).primary_key())
-                    .col(uuid(Entries::FeedId))
+                    .col(uuid(Entries::UserId))
                     .col(uuid(Entries::MessageId))
+                    .col(array(Entries::TopicUserIds, ColumnType::Uuid))
                     .to_owned(),
             )
             .await?;
@@ -21,11 +22,11 @@ impl MigrationTrait for Migration {
         manager
             .create_index(
                 Index::create()
-                    .name("entries_feed_id_message_id_udx")
+                    .name("entries_message_id_user_id_udx")
                     .unique()
                     .table(Entries::Table)
                     .col(Entries::MessageId)
-                    .col(Entries::FeedId)
+                    .col(Entries::UserId)
                     .to_owned(),
             )
             .await?;
