@@ -35,7 +35,9 @@ async fn process_tasks(db: &DbConn, settings: &ProcessingSettings) -> Result<(),
     let task_ids = tasks.iter().map(|it| it.task_id).collect();
     let locked_at = Utc::now().naive_utc();
 
-    repo::mark_tasks_as_locked(&tx, task_ids, locked_at).await?;
+    if tasks.len() > 0 {
+        repo::mark_tasks_as_locked(&tx, task_ids, locked_at).await?;
+    }
 
     tx.commit().await?;
 

@@ -8,27 +8,23 @@ pub struct Model {
     pub topic_user_id: Uuid,
     pub user_id: Uuid,
     pub topic_id: Uuid,
-    // pub rate: Rate,
-    // pub timing: Timing,
     pub created_at: DateTime,
     pub updated_at: DateTime,
 }
 
-// #[derive(EnumIter, DeriveActiveEnum, Clone, Debug, PartialEq, Eq)]
-// #[sea_orm(rs_type = "String", db_type = "Text", rename_all = "snake_case")]
-// pub enum Rate {
-//     Q,
-//     Qd,
-//     Qw,
-// }
+impl Model {
+    pub fn new(topic_user_id: Uuid, user_id: Uuid, topic_id: Uuid) -> Self {
+        let now = Utc::now().naive_utc();
 
-// #[derive(EnumIter, DeriveActiveEnum, Clone, Debug, PartialEq, Eq)]
-// #[sea_orm(rs_type = "String", db_type = "Text", rename_all = "snake_case")]
-// pub enum Timing {
-//     Instant,
-//     Weekdays,
-//     Weekends,
-// }
+        Self {
+            topic_user_id,
+            user_id,
+            topic_id,
+            created_at: now,
+            updated_at: now,
+        }
+    }
+}
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}

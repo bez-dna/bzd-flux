@@ -29,11 +29,6 @@ impl Model {
     }
 }
 
-// #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
-// pub struct Payload {
-//     foo: String,
-// }
-
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
 pub enum Payload {
     CreateMessage(CreateMessage),

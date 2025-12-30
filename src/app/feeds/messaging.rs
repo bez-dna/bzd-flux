@@ -106,7 +106,6 @@ mod topics_users {
     };
     use bzd_lib::error::Error;
     use bzd_messages_api::events::topic_user::Type;
-    use chrono::Utc;
     use prost::Message as _;
 
     use crate::app::{
@@ -163,8 +162,6 @@ mod topics_users {
                 topic_user_id: message.topic_user_id().parse()?,
                 topic_id: message.topic_id().parse()?,
                 user_id: message.user_id().parse()?,
-                created_at: Utc::now().naive_utc(),
-                updated_at: Utc::now().naive_utc(),
             })
         }
     }

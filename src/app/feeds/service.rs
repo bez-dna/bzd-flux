@@ -102,7 +102,6 @@ pub async fn handle_topic_user(
 
 pub mod handle_topic_user {
     use bzd_messages_api::events::topic_user::Type;
-    use chrono::NaiveDateTime;
     use uuid::Uuid;
 
     use crate::app::feeds::repo;
@@ -113,19 +112,11 @@ pub mod handle_topic_user {
         pub topic_user_id: Uuid,
         pub topic_id: Uuid,
         pub user_id: Uuid,
-        pub created_at: NaiveDateTime,
-        pub updated_at: NaiveDateTime,
     }
 
     impl From<Request> for repo::topic_user::Model {
         fn from(req: Request) -> Self {
-            Self {
-                topic_user_id: req.topic_user_id,
-                user_id: req.user_id,
-                topic_id: req.topic_id,
-                created_at: req.created_at,
-                updated_at: req.updated_at,
-            }
+            Self::new(req.topic_user_id, req.user_id, req.topic_id)
         }
     }
 }
