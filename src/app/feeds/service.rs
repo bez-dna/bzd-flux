@@ -119,4 +119,84 @@ pub mod handle_topic_user {
             Self::new(req.topic_user_id, req.user_id, req.topic_id)
         }
     }
+
+    #[cfg(test)]
+    mod tests {
+        use bzd_lib::error::Error;
+        use bzd_messages_api::events::topic_user::Type;
+        use sea_orm::{DatabaseBackend, MockDatabase, MockExecResult, Transaction};
+        use uuid::Uuid;
+
+        use crate::app::feeds::service::{self, handle_topic_user::Request};
+
+        #[tokio::test]
+        async fn test_ok_handle_topic_user_delete() -> Result<(), Error> {
+            let req = Request {
+                tp: Type::Deleted,
+                topic_user_id: Uuid::now_v7(),
+                topic_id: Uuid::now_v7(),
+                user_id: Uuid::now_v7(),
+            };
+
+            let db = MockDatabase::new(DatabaseBackend::Postgres)
+                .append_exec_results([MockExecResult {
+                    last_insert_id: 0,
+                    rows_affected: 1,
+                }])
+                .into_connection();
+
+            service::handle_topic_user(&db, req.clone()).await?;
+
+            assert_eq!(
+                db.into_transaction_log(),
+                [Transaction::from_sql_and_values(
+                    DatabaseBackend::Postgres,
+                    r#"DELETE FROM "topics_users" WHERE "topics_users"."topic_user_id" = $1"#,
+                    [req.topic_user_id.into()]
+                ),]
+            );
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_ok_handle_topic_user_create() -> Result<(), Error> {
+            let req = Request {
+                tp: Type::Created,
+                topic_user_id: Uuid::now_v7(),
+                topic_id: Uuid::now_v7(),
+                user_id: Uuid::now_v7(),
+            };
+
+            let db = MockDatabase::new(DatabaseBackend::Postgres)
+                .append_exec_results([MockExecResult {
+                    last_insert_id: 0,
+                    rows_affected: 1,
+                }])
+                .into_connection();
+
+            service::handle_topic_user(&db, req.clone()).await?;
+
+            // assert_eq!(
+            //     db.into_transaction_log(),
+            //     [Transaction::from_sql_and_values(
+            //         DatabaseBackend::Postgres,
+            //         r#"
+            //             INSERT INTO "topics_users" ("topic_user_id", "user_id", "topic_id", "created_at", "updated_at")
+            //             VALUES ($1, $2, $3, $4, $5) ON CONFLICT ("topic_user_id")
+            //             DO NOTHING RETURNING "topic_user_id"
+            //         "#,
+            //         [
+            //             req.topic_user_id.into(),
+            //             req.user_id.into(),
+            //             req.topic_id.into(),
+            //             ???,
+            //             ???
+            //         ]
+            //     ),]
+            // );
+
+            Ok(())
+        }
+    }
 }
