@@ -9,7 +9,7 @@ members = ["lib/api", "lib/migration"]
 [dependencies]
 bzd-lib = { git = "https://github.com/bez-dna/bzd-lib.git" }
 bzd-feeds-api = { path = "lib/api" }
-bzd-messages-api = { git = "https://github.com/bez-dna/bzd-messages.git", branch = "dev-2" }
+bzd-messages-api = { git = "https://github.com/bez-dna/bzd-messages.git" }
 
 axum = "0.8.7"
 
