@@ -4,12 +4,12 @@ use tracing::error;
 
 use crate::app::feeds::state::FeedsState;
 
-pub async fn messages(state: FeedsState) -> Result<(), Error> {
-    let consumer = messages::consumer(&state.mess, &state.settings).await?;
+pub async fn messages_topics(state: FeedsState) -> Result<(), Error> {
+    let consumer = messages_topics::consumer(&state.mess, &state.settings).await?;
     let mut messages = consumer.messages().await?;
 
     while let Some(message) = messages.next().await {
-        if let Err(err) = messages::handler(&state, message?).await {
+        if let Err(err) = messages_topics::handler(&state, message?).await {
             error!("{}", err);
         }
     }
@@ -17,19 +17,26 @@ pub async fn messages(state: FeedsState) -> Result<(), Error> {
     Ok(())
 }
 
-mod messages {
-    use async_nats::jetstream::{
-        self,
-        consumer::{Consumer, pull::Config},
+mod messages_topics {
+    use std::str::FromStr as _;
+
+    use async_nats::{
+        HeaderMap,
+        jetstream::{
+            self,
+            consumer::{Consumer, pull::Config},
+        },
     };
     use bzd_lib::error::Error;
     use prost::Message as _;
-    use uuid::Uuid;
 
     use crate::app::{
         error::AppError,
         feeds::{
-            service::{self, create_message::Request},
+            service::{
+                self,
+                handle_message_topic::{Request, Type},
+            },
             settings::FeedsSettings,
             state::FeedsState,
         },
@@ -44,8 +51,8 @@ mod messages {
             .js
             .create_consumer_on_stream(
                 Config {
-                    durable_name: Some(settings.messaging.message.consumer.clone()),
-                    filter_subjects: settings.messaging.message.subjects.clone(),
+                    durable_name: Some(settings.messaging.messages_topics.consumer.clone()),
+                    filter_subjects: settings.messaging.messages_topics.subjects.clone(),
                     ..Default::default()
                 },
                 mess.settings.stream.clone(),
@@ -56,26 +63,29 @@ mod messages {
     pub async fn handler(state: &FeedsState, message: jetstream::Message) -> Result<(), AppError> {
         let FeedsState { db, .. } = state;
 
-        service::create_message(&db.conn, (&message).try_into()?).await?;
+        let headers = message.headers.as_ref().ok_or(AppError::Unreachable)?;
+
+        service::handle_message_topic(&db.conn, (&message, headers).try_into()?).await?;
 
         message.ack().await?;
 
         Ok(())
     }
 
-    impl TryFrom<&jetstream::Message> for Request {
+    impl TryFrom<(&jetstream::Message, &HeaderMap)> for Request {
         type Error = AppError;
 
-        fn try_from(message: &jetstream::Message) -> Result<Self, Self::Error> {
-            let message = bzd_messages_api::events::Message::decode(message.payload.clone())?;
+        fn try_from(
+            (message, headers): (&jetstream::Message, &HeaderMap),
+        ) -> Result<Self, Self::Error> {
+            let tp = headers.get("ce_type").ok_or(AppError::Unreachable)?;
+            let message = bzd_messages_api::events::MessageTopic::decode(message.payload.clone())?;
 
             Ok(Self {
+                tp: Type::from_str(&tp.to_string())?,
+                message_topic_id: message.message_topic_id().parse()?,
+                topic_id: message.topic_id().parse()?,
                 message_id: message.message_id().parse()?,
-                topic_ids: message
-                    .topic_ids
-                    .iter()
-                    .map(|it| Uuid::parse_str(&it))
-                    .collect::<Result<Vec<Uuid>, uuid::Error>>()?,
             })
         }
     }
@@ -126,8 +136,8 @@ mod topics_users {
             .js
             .create_consumer_on_stream(
                 Config {
-                    durable_name: Some(settings.messaging.topic_user.consumer.clone()),
-                    filter_subjects: settings.messaging.topic_user.subjects.clone(),
+                    durable_name: Some(settings.messaging.topics_users.consumer.clone()),
+                    filter_subjects: settings.messaging.topics_users.subjects.clone(),
                     ..Default::default()
                 },
                 mess.settings.stream.clone(),

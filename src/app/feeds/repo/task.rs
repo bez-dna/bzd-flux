@@ -31,13 +31,13 @@ impl Model {
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
 pub enum Payload {
-    CreateMessage(CreateMessage),
+    CreateMessageTopic(CreateMessageTopic),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct CreateMessage {
+pub struct CreateMessageTopic {
     pub message_id: Uuid,
-    pub topic_ids: Vec<Uuid>,
+    pub topic_id: Uuid,
     pub last_topic_user_id: Option<Uuid>,
 }
 

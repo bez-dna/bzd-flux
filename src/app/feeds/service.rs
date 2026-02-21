@@ -1,58 +1,20 @@
-use bzd_messages_api::events::topic_user::Type;
 use sea_orm::DbConn;
 use uuid::Uuid;
 
 use crate::app::{
     error::AppError,
     feeds::{
-        repo::{self, EntryModel, TaskModel},
+        repo::{self, EntryModel, TaskModel, task::Payload},
         settings::FeedsSettings,
     },
 };
 
-pub async fn create_message(db: &DbConn, req: create_message::Request) -> Result<(), AppError> {
-    let task = TaskModel::new(req.into());
-    repo::create_task(db, task).await?;
-
-    Ok(())
-}
-
-pub mod create_message {
-    use uuid::Uuid;
-
-    use crate::app::feeds::repo::task::{CreateMessage, Payload};
-
-    pub struct Request {
-        pub message_id: Uuid,
-        pub topic_ids: Vec<Uuid>,
-    }
-
-    impl From<Request> for Payload {
-        fn from(req: Request) -> Self {
-            Self::CreateMessage(CreateMessage {
-                message_id: req.message_id,
-                topic_ids: req.topic_ids,
-                last_topic_user_id: None,
-            })
-        }
-    }
-
-    impl From<CreateMessage> for Request {
-        fn from(payload: CreateMessage) -> Self {
-            Self {
-                message_id: payload.message_id,
-                topic_ids: payload.topic_ids,
-            }
-        }
-    }
-}
-
-pub async fn create_entries_from_message(
+pub async fn create_entries_from_message_topic(
     db: &DbConn,
-    req: create_entries_from_message::Request,
+    req: create_entries_from_message_topic::Request,
 ) -> Result<Option<Uuid>, AppError> {
     let topics_users =
-        repo::get_topics_users_by_topic_user_id(db, req.topic_ids, req.last_topic_user_id).await?;
+        repo::get_topics_users_by_topic_user_id(db, req.topic_id, req.last_topic_user_id).await?;
 
     // TODO: нужно сделать параллельно
     for topic_user in topics_users.clone() {
@@ -67,23 +29,66 @@ pub async fn create_entries_from_message(
     Ok(topics_users.last().map(|it| it.topic_user_id))
 }
 
-pub mod create_entries_from_message {
+pub mod create_entries_from_message_topic {
     use uuid::Uuid;
 
-    use crate::app::feeds::repo::task::CreateMessage;
+    use crate::app::feeds::repo::task::CreateMessageTopic;
 
     pub struct Request {
         pub message_id: Uuid,
-        pub topic_ids: Vec<Uuid>,
+        pub topic_id: Uuid,
         pub last_topic_user_id: Option<Uuid>,
     }
 
-    impl From<CreateMessage> for Request {
-        fn from(payload: CreateMessage) -> Self {
+    impl From<CreateMessageTopic> for Request {
+        fn from(payload: CreateMessageTopic) -> Self {
             Self {
                 message_id: payload.message_id,
-                topic_ids: payload.topic_ids,
+                topic_id: payload.topic_id,
                 last_topic_user_id: payload.last_topic_user_id,
+            }
+        }
+    }
+}
+
+pub async fn handle_message_topic(
+    db: &DbConn,
+    req: handle_message_topic::Request,
+) -> Result<(), AppError> {
+    match req.tp {
+        handle_message_topic::Type::Created => {
+            let task = TaskModel::new(Payload::CreateMessageTopic(req.into()));
+            repo::create_task(db, task).await?;
+        }
+        handle_message_topic::Type::Deleted => {
+            println!("QQQ");
+        }
+    }
+
+    Ok(())
+}
+
+pub mod handle_message_topic {
+    use uuid::Uuid;
+
+    use crate::app::feeds::repo::task::CreateMessageTopic;
+
+    #[derive(Clone)]
+    pub struct Request {
+        pub tp: Type,
+        pub message_topic_id: Uuid,
+        pub topic_id: Uuid,
+        pub message_id: Uuid,
+    }
+
+    pub type Type = bzd_messages_api::events::message_topic::Type;
+
+    impl From<Request> for CreateMessageTopic {
+        fn from(req: Request) -> Self {
+            Self {
+                message_id: req.message_id,
+                topic_id: req.topic_id,
+                last_topic_user_id: None,
             }
         }
     }
@@ -96,15 +101,14 @@ pub async fn handle_topic_user(
     let topic_user: repo::topic_user::Model = req.clone().into();
 
     match req.tp {
-        Type::Created | Type::Updated => repo::upsert_topic_user(db, topic_user).await?,
-        Type::Deleted => repo::delete_topic_user(db, topic_user).await?,
+        handle_topic_user::Type::Created => repo::upsert_topic_user(db, topic_user).await?,
+        handle_topic_user::Type::Deleted => repo::delete_topic_user(db, topic_user).await?,
     }
 
     Ok(())
 }
 
 pub mod handle_topic_user {
-    use bzd_messages_api::events::topic_user::Type;
     use uuid::Uuid;
 
     use crate::app::feeds::repo;
@@ -122,6 +126,8 @@ pub mod handle_topic_user {
             Self::new(req.topic_user_id, req.user_id, req.topic_id)
         }
     }
+
+    pub type Type = bzd_messages_api::events::topic_user::Type;
 
     #[cfg(test)]
     mod tests {
@@ -399,11 +405,11 @@ pub mod get_user_entries {
             FeedsSettings {
                 limits: LimitsSettings { user: limit },
                 messaging: MessagingSettings {
-                    message: NATSConsumerSettings {
+                    messages_topics: NATSConsumerSettings {
                         subjects: vec![],
                         consumer: String::new(),
                     },
-                    topic_user: NATSConsumerSettings {
+                    topics_users: NATSConsumerSettings {
                         subjects: vec![],
                         consumer: String::new(),
                     },

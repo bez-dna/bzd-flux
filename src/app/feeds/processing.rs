@@ -51,9 +51,9 @@ async fn process_tasks(db: &DbConn, settings: &ProcessingSettings) -> Result<(),
 
 async fn process_task(db: &DbConn, task: repo::task::Model) -> Result<(), AppError> {
     match task.payload.clone() {
-        repo::task::Payload::CreateMessage(payload) => {
+        repo::task::Payload::CreateMessageTopic(payload) => {
             let last_topic_user_id =
-                service::create_entries_from_message(db, payload.into()).await?;
+                service::create_entries_from_message_topic(db, payload.into()).await?;
 
             match last_topic_user_id {
                 Some(last_topic_user_id) => repo::unlock_task(db, task, last_topic_user_id).await?,

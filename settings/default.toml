@@ -11,15 +11,16 @@ endpoint = "0.0.0.0:4222"
 stream = "bzd"
 
 [feeds.limits]
-user = 10
+user = 25
 
-[feeds.messaging.message]
-subjects = ["bzd.messages.events.message"]
-consumer = "bzd-feeds-message"
+[feeds.messaging.messages_topics]
+subjects = ["bzd.messages.events.messages_topics"]
+consumer = "bzd-feeds-messages-topics"
 
-[feeds.messaging.topic_user]
-subjects = ["bzd.messages.events.topic_user"]
-consumer = "bzd-feeds-topic-user"
+
+[feeds.messaging.topics_users]
+subjects = ["bzd.messages.events.topics_users"]
+consumer = "bzd-feeds-topics-users"
 
 [feeds.processing]
 batch_size = 5

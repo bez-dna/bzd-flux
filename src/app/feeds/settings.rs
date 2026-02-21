@@ -15,8 +15,8 @@ pub struct LimitsSettings {
 
 #[derive(Deserialize, Clone)]
 pub struct MessagingSettings {
-    pub message: NATSConsumerSettings,
-    pub topic_user: NATSConsumerSettings,
+    pub messages_topics: NATSConsumerSettings,
+    pub topics_users: NATSConsumerSettings,
 }
 
 #[derive(Deserialize, Clone)]
