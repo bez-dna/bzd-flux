@@ -509,12 +509,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "bzd-feeds"
+name = "bzd-flux"
 version = "0.0.0"
 dependencies = [
  "async-nats",
  "axum",
- "bzd-feeds-api",
+ "bzd-flux-api",
  "bzd-lib",
  "bzd-messages-api",
  "chrono",
@@ -539,7 +539,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "bzd-feeds-api"
+name = "bzd-flux-api"
 version = "0.0.0"
 dependencies = [
  "bzd-lib",
@@ -551,7 +551,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "bzd-feeds-migration"
+name = "bzd-flux-migration"
 version = "0.0.0"
 dependencies = [
  "async-std",

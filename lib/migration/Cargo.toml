@@ -1,5 +1,5 @@
 [package]
-name = "bzd-feeds-migration"
+name = "bzd-flux-migration"
 edition = "2024"
 
 [dependencies]

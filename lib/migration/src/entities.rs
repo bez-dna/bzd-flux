@@ -1,13 +1,6 @@
 use sea_orm_migration::prelude::*;
 
 #[derive(DeriveIden)]
-pub enum Feeds {
-    Table,
-    FeedId,
-    UserId,
-}
-
-#[derive(DeriveIden)]
 pub enum Entries {
     Table,
     EntryId,

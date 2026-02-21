@@ -1,4 +1,4 @@
-use bzd_feeds_api::feeds::{
+use bzd_flux_api::feeds::{
     GetUserEntriesRequest, GetUserEntriesResponse, feeds_service_server::FeedsService,
 };
 use tonic::{Request, Response, Status};
@@ -28,7 +28,7 @@ impl FeedsService for GrpcFeedsService {
 }
 
 mod get_user_entries {
-    use bzd_feeds_api::feeds::{GetUserEntriesRequest, GetUserEntriesResponse};
+    use bzd_flux_api::feeds::{GetUserEntriesRequest, GetUserEntriesResponse};
     use uuid::Uuid;
 
     use crate::app::{

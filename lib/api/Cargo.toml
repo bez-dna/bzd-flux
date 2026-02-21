@@ -1,5 +1,5 @@
 [package]
-name = "bzd-feeds-api"
+name = "bzd-flux-api"
 edition = "2024"
 
 [dependencies]

@@ -1,4 +1,4 @@
-use bzd_feeds_api::feeds::feeds_service_server::FeedsServiceServer;
+use bzd_flux_api::feeds::feeds_service_server::FeedsServiceServer;
 use bzd_lib::error::Error;
 use tokio::try_join;
 
