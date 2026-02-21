@@ -1,5 +1,5 @@
 [package]
-name = "bzd-feeds"
+name = "bzd-flux"
 edition = "2024"
 
 [workspace]
@@ -8,7 +8,7 @@ members = ["lib/api", "lib/migration"]
 
 [dependencies]
 bzd-lib = { git = "https://github.com/bez-dna/bzd-lib.git" }
-bzd-feeds-api = { path = "lib/api" }
+bzd-flux-api = { path = "lib/api" }
 bzd-messages-api = { git = "https://github.com/bez-dna/bzd-messages.git" }
 
 axum = "0.8.7"

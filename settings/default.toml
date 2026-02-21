@@ -1,10 +1,10 @@
-# _name = "bzd-feeds"
+# _name = "bzd-flux"
 
 [http]
 endpoint = "0.0.0.0:3000"
 
 [db]
-endpoint = "postgres://postgres:postgres@0.0.0.0:5432/bzd_feeds"
+endpoint = "postgres://postgres:postgres@0.0.0.0:5432/bzd_flux"
 
 [nats]
 endpoint = "0.0.0.0:4222"
@@ -15,12 +15,12 @@ user = 25
 
 [feeds.messaging.messages_topics]
 subjects = ["bzd.messages.events.messages_topics"]
-consumer = "bzd-feeds-messages-topics"
+consumer = "bzd-flux-feeds-messages-topics"
 
 
 [feeds.messaging.topics_users]
 subjects = ["bzd.messages.events.topics_users"]
-consumer = "bzd-feeds-topics-users"
+consumer = "bzd-flux-feeds-topics-users"
 
 [feeds.processing]
 batch_size = 5
