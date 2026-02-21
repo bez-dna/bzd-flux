@@ -18,7 +18,7 @@ pub fn service(state: &AppState) -> FeedsServiceServer<GrpcFeedsService> {
 
 pub async fn messaging(state: &AppState) -> Result<(), Error> {
     try_join!(
-        messaging::messages(state.feeds.clone()),
+        messaging::messages_topics(state.feeds.clone()),
         messaging::topics_users(state.feeds.clone())
     )?;
 

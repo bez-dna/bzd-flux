@@ -96,9 +96,9 @@ pub async fn unlock_task<T: ConnectionTrait>(
     last_topic_user_id: Uuid,
 ) -> Result<(), AppError> {
     let payload = match model.payload.clone() {
-        task::Payload::CreateMessage(mut payload) => {
+        task::Payload::CreateMessageTopic(mut payload) => {
             payload.last_topic_user_id = Some(last_topic_user_id);
-            task::Payload::CreateMessage(payload)
+            task::Payload::CreateMessageTopic(payload)
         }
     };
 
@@ -120,11 +120,11 @@ pub async fn delete_task<T: ConnectionTrait>(db: &T, model: TaskModel) -> Result
 
 pub async fn get_topics_users_by_topic_user_id<T: ConnectionTrait>(
     db: &T,
-    topic_ids: Vec<Uuid>,
+    topic_id: Uuid,
     topic_user_id: Option<Uuid>,
 ) -> Result<Vec<TopicUserModel>, AppError> {
     let topics_users = topic_user::Entity::find()
-        .filter(topic_user::Column::TopicId.is_in(topic_ids))
+        .filter(topic_user::Column::TopicId.eq(topic_id))
         .apply_if(topic_user_id, |query, it| {
             query.filter(topic_user::Column::TopicUserId.lt(it))
         })
